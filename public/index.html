@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>M-Pesa STK Push — Live Test</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 32px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+    h1 { margin: 0 0 6px; font-size: 22px; color: #4ade80; }
+    p.sub { margin: 0 0 24px; font-size: 13px; color: #94a3b8; }
+    label { display: block; font-size: 13px; margin-bottom: 6px; color: #cbd5e1; }
+    input {
+      width: 100%;
+      padding: 11px 12px;
+      margin-bottom: 16px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 14px;
+      outline: none;
+    }
+    input:focus { border-color: #4ade80; }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #4ade80;
+      color: #0f172a;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #log {
+      margin-top: 22px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: ui-monospace, Menlo, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      max-height: 240px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #94a3b8;
+    }
+    .ok { color: #4ade80; }
+    .err { color: #f87171; }
+    .info { color: #60a5fa; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>M-Pesa STK Push</h1>
+    <p class="sub">Live Daraja · Buy Goods (Till) Flow</p>
+
+    <label for="phone">Phone Number (2547XXXXXXXX)</label>
+    <input id="phone" type="tel" placeholder="254712345678" value="254" />
+
+    <label for="amount">Amount (KES)</label>
+    <input id="amount" type="number" placeholder="1" value="1" min="1" />
+
+    <label for="reference">Account Reference</label>
+    <input id="reference" type="text" placeholder="INV-001" value="TEST-001" />
+
+    <button id="payBtn">Send STK Push</button>
+
+    <div id="log">Ready. Enter details and click "Send STK Push".</div>
+  </div>
+
+  <script>
+    const log = (msg, cls = "info") => {
+      const el = document.getElementById("log");
+      el.innerHTML += `\n<span class="${cls}">[${new Date().toLocaleTimeString()}] ${msg}</span>`;
+      el.scrollTop = el.scrollHeight;
+    };
+
+    const btn = document.getElementById("payBtn");
+
+    btn.addEventListener("click", async () => {
+      const phone = document.getElementById("phone").value.trim();
+      const amount = document.getElementById("amount").value.trim();
+      const reference = document.getElementById("reference").value.trim();
+
+      if (!phone || !amount) {
+        log("Phone and amount are required.", "err");
+        return;
+      }
+
+      btn.disabled = true;
+      document.getElementById("log").innerHTML = "Sending STK Push...";
+
+      try {
+        const res = await fetch("/api/pay", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone, amount, reference }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "Request failed");
+
+        if (data.ResponseCode === "0") {
+          log("STK Push sent successfully.", "ok");
+          log(`CheckoutRequestID: ${data.CheckoutRequestID}`, "info");
+          log("Waiting for customer to enter PIN...", "info");
+          pollStatus(data.CheckoutRequestID);
+        } else {
+          log(`Failed: ${data.errorMessage || data.ResponseDescription || JSON.stringify(data)}`, "err");
+        }
+      } catch (err) {
+        log(`Error: ${err.message}`, "err");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // Polls the server for the callback result
+    const pollStatus = async (checkoutId) => {
+      let attempts = 0;
+      const maxAttempts = 24; // ~2 minutes at 5s intervals
+
+      const interval = setInterval(async () => {
+        attempts++;
+        try {
+          const res = await fetch(`/api/status/${checkoutId}`);
+          const data = await res.json();
+
+          if (data.status === "SUCCESS") {
+            clearInterval(interval);
+            log(`✅ Payment successful. Receipt: ${data.receipt}`, "ok");
+            log(`Amount: KES ${data.amount} · Phone: ${data.phone}`, "ok");
+          } else if (data.status === "FAILED") {
+            clearInterval(interval);
+            log(`❌ Payment failed: ${data.resultDesc}`, "err");
+          } else if (attempts >= maxAttempts) {
+            clearInterval(interval);
+            log("⏱ No callback received (timeout). Check server logs.", "err");
+          } else {
+            log(`Waiting... (${attempts}/${maxAttempts})`, "info");
+          }
+        } catch (err) {
+          clearInterval(interval);
+          log(`Status check error: ${err.message}`, "err");
+        }
+      }, 5000);
+    };
+  </script>
+</body>
+</html>
