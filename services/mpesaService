@@ -7,10 +7,10 @@ const BASE_URL = process.env.MPESA_ENV === 'production'
 
 // Helper to get OAuth Token
 const getToken = async () => {
-    const auth = Buffer.from(`${process.env.CONSUMER_KEY}:${process.env.CONSUMER_SECRET}`).toString('base64');
+    const auth = Buffer.from(${process.env.CONSUMER_KEY}:${process.env.CONSUMER_SECRET}).toString('base64');
     try {
-        const response = await axios.get(`${BASE_URL}/oauth/v1/generate?grant_type=client_credentials`, {
-            headers: { Authorization: `Basic ${auth}` }
+        const response = await axios.get(${BASE_URL}/oauth/v1/generate?grant_type=client_credentials, {
+            headers: { Authorization: Basic ${auth} }
         });
         return response.data.access_token;
     } catch (error) {
@@ -19,32 +19,50 @@ const getToken = async () => {
     }
 };
 
+// Helper to format phone number (e.g., 0712345678 -> 254712345678)
+const formatPhoneNumber = (phone) => {
+    let cleaned = phone.toString().replace(/\D/g, ''); // Remove non-digits
+    if (cleaned.startsWith('0')) {
+        cleaned = '254' + cleaned.slice(1);
+    } else if (cleaned.startsWith('7') || cleaned.startsWith('1')) {
+        cleaned = '254' + cleaned;
+    }
+    return cleaned;
+};
+
 // Initiate STK Push (Lipa na M-Pesa Online)
 const initiateSTKPush = async (phoneNumber, amount, accountReference) => {
     const token = await getToken();
     const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, "").slice(0, 14);
     
     // Password = Base64(Shortcode + Passkey + Timestamp)
-    const password = Buffer.from(`${process.env.SHORTCODE}${process.env.PASSKEY}${timestamp}`).toString('base64');
+    const password = Buffer.from(${process.env.SHORTCODE}${process.env.PASSKEY}${timestamp}).toString('base64');
+
+    const formattedPhone = formatPhoneNumber(phoneNumber);
 
     const payload = {
-        BusinessShortCode: process.env.SHORTCODE,
+        BusinessShortCode: process.env.SHORTCODE, // Store / Head Office Number
         Password: password,
         Timestamp: timestamp,
         // Use CustomerBuyGoodsOnline for Till Numbers
         TransactionType: "CustomerBuyGoodsOnline", 
         Amount: Math.round(amount),
-        PartyA: phoneNumber,
-        PartyB: process.env.SHORTCODE, // For Till, this is often the Store Number in Daraja
-        PhoneNumber: phoneNumber,
+        PartyA: formattedPhone,
+        PartyB: process.env.TILL_NUMBER, // ✅ Till Number goes here
+        PhoneNumber: formattedPhone,
         CallBackURL: process.env.CALLBACK_URL,
-        AccountReference: accountReference,
+        AccountReference: accountReference || "Payment",
         TransactionDesc: "Payment for Order"
     };
 
+    console.log("Sending STK Push Payload:", { 
+        ...payload, 
+        Password: "**HIDDEN**" 
+    }); // Log payload to help debug
+
     try {
-        const response = await axios.post(`${BASE_URL}/mpesa/stkpush/v1/processrequest`, payload, {
-            headers: { Authorization: `Bearer ${token}` }
+        const response = await axios.post(${BASE_URL}/mpesa/stkpush/v1/processrequest, payload, {
+            headers: { Authorization: Bearer ${token} }
         });
         return response.data;
     } catch (error) {
