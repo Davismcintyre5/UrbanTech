@@ -7,10 +7,10 @@ const BASE_URL = process.env.MPESA_ENV === 'production'
 
 // Helper to get OAuth Token
 const getToken = async () => {
-    const auth = Buffer.from(${process.env.CONSUMER_KEY}:${process.env.CONSUMER_SECRET}).toString('base64');
+    const auth = Buffer.from(`${process.env.CONSUMER_KEY}:${process.env.CONSUMER_SECRET}`).toString('base64');
     try {
-        const response = await axios.get(${BASE_URL}/oauth/v1/generate?grant_type=client_credentials, {
-            headers: { Authorization: Basic ${auth} }
+        const response = await axios.get(`${BASE_URL}/oauth/v1/generate?grant_type=client_credentials`, {
+            headers: { Authorization: `Basic ${auth}` }
         });
         return response.data.access_token;
     } catch (error) {
@@ -36,7 +36,7 @@ const initiateSTKPush = async (phoneNumber, amount, accountReference) => {
     const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, "").slice(0, 14);
     
     // Password = Base64(Shortcode + Passkey + Timestamp)
-    const password = Buffer.from(${process.env.SHORTCODE}${process.env.PASSKEY}${timestamp}).toString('base64');
+    const password = Buffer.from(`${process.env.SHORTCODE}${process.env.PASSKEY}${timestamp}`).toString('base64');
 
     const formattedPhone = formatPhoneNumber(phoneNumber);
 
@@ -61,8 +61,8 @@ const initiateSTKPush = async (phoneNumber, amount, accountReference) => {
     }); // Log payload to help debug
 
     try {
-        const response = await axios.post(${BASE_URL}/mpesa/stkpush/v1/processrequest, payload, {
-            headers: { Authorization: Bearer ${token} }
+        const response = await axios.post(`${BASE_URL}/mpesa/stkpush/v1/processrequest`, payload, {
+            headers: { Authorization: `Bearer ${token}` }
         });
         return response.data;
     } catch (error) {
