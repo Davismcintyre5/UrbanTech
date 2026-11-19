@@ -3,13 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>M-Pesa STK Push — Live Test</title>
+  <title>Urban Tech</title>
+  
+  <!-- Inline SVG Favicon: A sleek blue 'U' badge -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230f172a'/%3E%3Cpath d='M30 30v25c0 11 9 20 20 20s20-9 20-20V30' fill='none' stroke='%2338bdf8' stroke-width='12' stroke-linecap='round'/%3E%3C/svg%3E" />
+
   <style>
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #0f172a;
-      color: #e2e8f0;
+      color: #f8fafc;
       margin: 0;
       min-height: 100vh;
       display: flex;
@@ -21,77 +24,99 @@
       background: #1e293b;
       border: 1px solid #334155;
       border-radius: 14px;
-      padding: 32px;
+      padding: 36px 32px;
       width: 100%;
-      max-width: 440px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      max-width: 420px;
+      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
     }
-    h1 { margin: 0 0 6px; font-size: 22px; color: #4ade80; }
-    p.sub { margin: 0 0 24px; font-size: 13px; color: #94a3b8; }
-    label { display: block; font-size: 13px; margin-bottom: 6px; color: #cbd5e1; }
+    .logo { text-align: center; margin-bottom: 28px; }
+    .logo h1 { 
+      margin: 0; 
+      font-size: 28px; 
+      font-weight: 800; 
+      color: #38bdf8;
+      letter-spacing: -0.5px;
+    }
+    label { 
+      display: block; 
+      font-size: 13px; 
+      margin-bottom: 8px; 
+      color: #cbd5e1; 
+      font-weight: 500; 
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
     input {
       width: 100%;
-      padding: 11px 12px;
-      margin-bottom: 16px;
+      padding: 14px;
+      margin-bottom: 22px;
       background: #0f172a;
       border: 1px solid #334155;
-      border-radius: 8px;
-      color: #e2e8f0;
-      font-size: 14px;
+      border-radius: 10px;
+      color: #f8fafc;
+      font-size: 15px;
       outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    input:focus { border-color: #4ade80; }
+    input:focus { 
+      border-color: #38bdf8; 
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    }
     button {
       width: 100%;
-      padding: 12px;
-      background: #4ade80;
+      padding: 15px;
+      background: #38bdf8;
       color: #0f172a;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       font-weight: 700;
-      font-size: 15px;
+      font-size: 16px;
       cursor: pointer;
-      transition: opacity 0.15s;
+      transition: transform 0.1s, opacity 0.2s;
     }
-    button:hover { opacity: 0.9; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button:hover { opacity: 0.9; transform: translateY(-1px); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     #log {
-      margin-top: 22px;
+      margin-top: 24px;
       background: #0f172a;
       border: 1px solid #334155;
-      border-radius: 8px;
-      padding: 12px;
-      font-family: ui-monospace, Menlo, monospace;
+      border-radius: 10px;
+      padding: 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 12px;
       line-height: 1.6;
-      max-height: 240px;
+      max-height: 180px;
       overflow-y: auto;
       white-space: pre-wrap;
-      word-break: break-word;
       color: #94a3b8;
     }
     .ok { color: #4ade80; }
     .err { color: #f87171; }
     .info { color: #60a5fa; }
+    
+    /* Custom scrollbar for log */
+    #log::-webkit-scrollbar { width: 6px; }
+    #log::-webkit-scrollbar-track { background: transparent; }
+    #log::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>M-Pesa STK Push</h1>
-    <p class="sub">Live Daraja · Buy Goods (Till) Flow</p>
+    <div class="logo">
+      <h1>Urban Tech</h1>
+    </div>
 
-    <label for="phone">Phone Number (2547XXXXXXXX)</label>
-    <input id="phone" type="tel" placeholder="254712345678" value="254" />
+    <label>Phone Number</label>
+    <input id="phone" type="text" inputmode="tel" placeholder="07XX XXX XXX or 2547..." value="" />
 
-    <label for="amount">Amount (KES)</label>
+    <label>Amount (KES)</label>
     <input id="amount" type="number" placeholder="1" value="1" min="1" />
 
-    <label for="reference">Account Reference</label>
-    <input id="reference" type="text" placeholder="INV-001" value="TEST-001" />
+    <label>Payment Reason</label>
+    <input id="reason" type="text" placeholder="e.g. Invoice #1024" value="" />
 
-    <button id="payBtn">Send STK Push</button>
-
-    <div id="log">Ready. Enter details and click "Send STK Push".</div>
+    <button id="payBtn">Pay with M-Pesa</button>
+    <div id="log">System ready. Enter details to initiate payment.</div>
   </div>
 
   <script>
@@ -101,38 +126,52 @@
       el.scrollTop = el.scrollHeight;
     };
 
+    const sanitizePhone = (raw) => {
+      let p = raw.replace(/\D/g, ''); 
+      if (p.startsWith('0')) p = '254' + p.slice(1);
+      else if (p.startsWith('7') || p.startsWith('1')) p = '254' + p;
+      else if (p.startsWith('2540')) p = '254' + p.slice(4); 
+      return p;
+    };
+
     const btn = document.getElementById("payBtn");
 
     btn.addEventListener("click", async () => {
-      const phone = document.getElementById("phone").value.trim();
+      const rawPhone = document.getElementById("phone").value.trim();
       const amount = document.getElementById("amount").value.trim();
-      const reference = document.getElementById("reference").value.trim();
+      const reason = document.getElementById("reason").value.trim();
 
-      if (!phone || !amount) {
-        log("Phone and amount are required.", "err");
-        return;
+      if (!rawPhone || !amount) return log("Phone and amount are required.", "err");
+
+      const phone = sanitizePhone(rawPhone);
+
+      if (!/^254(7|1)\d{8}$/.test(phone)) {
+        return log(`Invalid phone number: ${rawPhone}. Use 07XX XXX XXX or 2547XXXXXXXX.`, "err");
       }
 
       btn.disabled = true;
-      document.getElementById("log").innerHTML = "Sending STK Push...";
+      document.getElementById("log").innerHTML = `Sending STK Push to ${phone}...`;
 
       try {
         const res = await fetch("/api/pay", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, amount, reference }),
+          body: JSON.stringify({ 
+            phone, 
+            amount, 
+            reference: reason || "UrbanTech Payment"
+          }),
         });
         const data = await res.json();
 
-        if (!res.ok) throw new Error(data.error || "Request failed");
+        if (!res.ok) throw new Error(data.error || data.details?.errorMessage || "Request failed");
 
         if (data.ResponseCode === "0") {
           log("STK Push sent successfully.", "ok");
-          log(`CheckoutRequestID: ${data.CheckoutRequestID}`, "info");
-          log("Waiting for customer to enter PIN...", "info");
+          log("Check your phone and enter your M-Pesa PIN.", "info");
           pollStatus(data.CheckoutRequestID);
         } else {
-          log(`Failed: ${data.errorMessage || data.ResponseDescription || JSON.stringify(data)}`, "err");
+          log(`Failed: ${data.errorMessage || data.ResponseDescription}`, "err");
         }
       } catch (err) {
         log(`Error: ${err.message}`, "err");
@@ -141,11 +180,8 @@
       }
     });
 
-    // Polls the server for the callback result
     const pollStatus = async (checkoutId) => {
       let attempts = 0;
-      const maxAttempts = 24; // ~2 minutes at 5s intervals
-
       const interval = setInterval(async () => {
         attempts++;
         try {
@@ -155,19 +191,19 @@
           if (data.status === "SUCCESS") {
             clearInterval(interval);
             log(`✅ Payment successful. Receipt: ${data.receipt}`, "ok");
-            log(`Amount: KES ${data.amount} · Phone: ${data.phone}`, "ok");
-          } else if (data.status === "FAILED") {
+            log(`Urban Tech has received your payment.`, "ok");
+          } else if (data.status === "FAILED" || data.status === "CANCELLED") {
             clearInterval(interval);
-            log(`❌ Payment failed: ${data.resultDesc}`, "err");
-          } else if (attempts >= maxAttempts) {
+            log(`❌ Transaction ${data.status}: ${data.resultDesc}`, "err");
+          } else if (attempts >= 24) {
             clearInterval(interval);
-            log("⏱ No callback received (timeout). Check server logs.", "err");
+            log("⏱ Timeout waiting for callback. Check server logs.", "err");
           } else {
-            log(`Waiting... (${attempts}/${maxAttempts})`, "info");
+            log(`Waiting for confirmation... (${attempts}/24)`, "info");
           }
         } catch (err) {
           clearInterval(interval);
-          log(`Status check error: ${err.message}`, "err");
+          log(`Status Error: ${err.message}`, "err");
         }
       }, 5000);
     };
